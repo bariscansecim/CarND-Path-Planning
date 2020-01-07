@@ -102,7 +102,7 @@ This step analyzes the localization and sensor fusion data for all cars on the s
 
 The positions of all the other cars are analyzed relative to the host vehicle. If the host vehicle is within 30 meters of the cars in front, the boolean too_close is flagged true. If cars are within that margin on the left or right, car_left or car_right are flagged true, respectively.
 
-### Behavior [line 154 to 185](./scr/main.cpp#L154)
+### Behavior [line 154 to 185](./src/main.cpp#L154)
 This part decides what to do, decisions are made on how to adjust speed and change lanes. 
   - Change the lane or stay on the lane.
   - Speed up or slow down.
@@ -110,7 +110,7 @@ This part decides what to do, decisions are made on how to adjust speed and chan
 Based on the prediction of the situation we are in, this code increases the speed, decrease speed, or make a lane change when it is safe. If a car is ahead within the gap, the lanes to the left and right are checked. If one of them is empty, the car will change lanes. Otherwise it will slow down.The car will move back to the center lane when it becomes clear. This is because a car can move both left and right from the center lane, and it is more likely to get stuck going slowly if on the far left or right.
 
 
-### Trajectory [line 188 to 291](./scr/main.cpp#L188)
+### Trajectory [line 188 to 291](./src/main.cpp#L188)
 This code computes the trajectory of the vehicle from the decisions made above, the vehicle's position, and historical path points.
 
 First [line 188 to 246](./src/main.cpp#L188), the last two points in the already-covered terrain are computed. If the vehicle has not yet moved 60 meters, the vehicle's current position is used instead of the historical waypoints. In addition, the Frenet helper function getXY() is used to generate three points spaced evenly at 30 meters in front of the car.
