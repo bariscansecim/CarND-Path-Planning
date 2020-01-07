@@ -65,11 +65,7 @@ the path has processed since last time.
 
 2. There will be some latency between the simulator running and the path planner returning a path, with optimized code usually its not very long maybe just 1-3 time steps. During this delay the simulator will continue using points that it was last given, because of this its a good idea to store the last points you have used so you can have a smooth transition. previous_path_x, and previous_path_y can be helpful for this transition since they show the last points given to the simulator controller with the processed points already removed. You would either return a path that extends this previous path or make sure to create a new path that has a smooth transition with this last path.
 
-## Tips
 
-A really helpful resource for doing this project and creating smooth trajectories was using http://kluge.in-chemnitz.de/opensource/spline/, the spline function is in a single hearder file is really easy to use.
-
----
 
 ## Dependencies
 
@@ -92,54 +88,37 @@ A really helpful resource for doing this project and creating smooth trajectorie
     git checkout e94b6e1
     ```
 
-## Editor Settings
+---
 
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
+## Implementation
+Based on the provided code from the Udacity, the path planning algorithms start at [src/main.cpp](./src/main.cpp#L60) line 60 to the line 302.
+This project uses [cubic splines](https://kluge.in-chemnitz.de/opensource/spline/) to generate smooth trajectories. This is similar to an implementation provided in [Udacity's walk-through video](https://www.youtube.com/watch?v=7sI3VHFPP0w).The code consist of three parts:
 
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
+### Prediction [line 104 to 152](./src/main.cpp#L104)
+This step analyzes the localization and sensor fusion data for all cars on the same side of the track, including the host vehicle. It intents to check surrounding environment. In the case, we want to check three aspects of it:
+- Is there any car in ahead of host blocking the host lane.
+- Is there any car on right of host causing a lane change not safe.
+- Is there any car to the left of host causing a lane change not safe.
 
-## Code Style
+The positions of all the other cars are analyzed relative to the host vehicle. If the host vehicle is within 30 meters of the cars in front, the boolean too_close is flagged true. If cars are within that margin on the left or right, car_left or car_right are flagged true, respectively.
 
-Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
+### Behavior [line 154 to 185](./scr/main.cpp#L154)
+This part decides what to do, decisions are made on how to adjust speed and change lanes. 
+  - Change the lane or stay on the lane.
+  - Speed up or slow down.
 
-## Project Instructions and Rubric
-
-Note: regardless of the changes you make, your project must be buildable using
-cmake and make!
+Based on the prediction of the situation we are in, this code increases the speed, decrease speed, or make a lane change when it is safe. If a car is ahead within the gap, the lanes to the left and right are checked. If one of them is empty, the car will change lanes. Otherwise it will slow down.The car will move back to the center lane when it becomes clear. This is because a car can move both left and right from the center lane, and it is more likely to get stuck going slowly if on the far left or right.
 
 
-## Call for IDE Profiles Pull Requests
+### Trajectory [line 188 to 291](./scr/main.cpp#L188)
+This code computes the trajectory of the vehicle from the decisions made above, the vehicle's position, and historical path points.
 
-Help your fellow students!
+First [line 188 to 246](./src/main.cpp#L188), the last two points in the already-covered terrain are computed. If the vehicle has not yet moved 60 meters, the vehicle's current position is used instead of the historical waypoints. In addition, the Frenet helper function getXY() is used to generate three points spaced evenly at 30 meters in front of the car.
 
-We decided to create Makefiles with cmake to keep this project as platform
-agnostic as possible. Similarly, we omitted IDE profiles in order to ensure
-that students don't feel pressured to use one IDE or another.
+Then [line 249 to 291](./src/main.cpp#L249), the computed waypoints are transformed using a spline. The spline makes it relatively easy to compute a smooth trajectory in 2D space while taking into account acceleration and velocity.
 
-However! I'd love to help people get up and running with their IDEs of choice.
-If you've created a profile for an IDE that you think other students would
-appreciate, we'd love to have you add the requisite profile files and
-instructions to ide_profiles/. For example if you wanted to add a VS Code
-profile, you'd add:
 
-* /ide_profiles/vscode/.vscode
-* /ide_profiles/vscode/README.md
 
-The README should explain what the profile does, how to take advantage of it,
-and how to install it.
 
-Frankly, I've never been involved in a project with multiple IDE profiles
-before. I believe the best way to handle this would be to keep them out of the
-repo root to avoid clutter. My expectation is that most profiles will include
-instructions to copy files to a new location to get picked up by the IDE, but
-that's just a guess.
 
-One last note here: regardless of the IDE used, every submitted project must
-still be compilable with cmake and make./
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
 
